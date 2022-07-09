@@ -1,5 +1,6 @@
 import abc
 from http.client import HTTPException
+from sqlite3 import Cursor
 from typing import Union
 import requests
 import time
@@ -14,18 +15,44 @@ from errors import (
     MajorError,
     MinorError,
     ImageSaveError,
+    DBSaveError
 )
 
 
 class Scraper:
     __metaclass__ = abc.ABCMeta
+    
 
-    def __init__(self, article_infos: list[ArticleInfo], delay: int = None) -> None:
-        self._article_infos = article_infos
+    def __init__(
+        self, db_cursor: Cursor, delay: int = None
+    ) -> None:
+        self._cursor = db_cursor
         self._delay = delay
 
+        self._load_data_from_db()
+        
         if not os.path.exists("./images"):
             os.mkdir("./images")
+
+    @property
+    @abc.abstractmethod
+    def press(self) -> str:
+        pass
+
+    def _load_data_from_db(self):
+        try:
+            self._cursor.execute("SELECT * FROM news WHERE press =?", (self.press, ))
+            article_infos =  self._cursor.fetchall()
+            self._article_infos = self._convert_to_article_info_object(article_infos)
+            print(len(self._article_infos))
+        except Exception as e:
+            print("Failed to load data from db")
+            raise e
+
+    @staticmethod
+    def _convert_to_article_info_object(article_infos: list[list[str]]) -> list[ArticleInfo]:
+        return [ArticleInfo(*info) for info in article_infos]
+
 
     def _get_page_html(self, page_url: str) -> BeautifulSoup:
         try:
@@ -54,9 +81,9 @@ class Scraper:
         pass
 
     @staticmethod
-    def _make_directory_names(id: str, image_url: str) -> tuple[str, str]:
+    def _make_directory_names(id: str, order: int, image_url: str) -> tuple[str, str]:
         image_foramt = image_url.split(".")[-1]
-        image_name = str(i) + "." + image_foramt
+        image_name = str(order) + "." + image_foramt
         image_folder_directory = "./images/{}".format(id)
         image_directory = os.path.join(image_folder_directory, image_name)
 
@@ -84,10 +111,10 @@ class Scraper:
     def _save_images(self, id: str, image_urls: list[str]) -> list[str] | None:
         image_dirs = []
 
-        for i, url in enumerate(image_urls):
+        for order, url in enumerate(image_urls):
 
             image_folder_directory, image_directory = self._make_directory_names(
-                id, url
+                id, order, url
             )
             image_request = self._make_image_request(url)
             image_dirs.append(image_directory)
@@ -99,8 +126,15 @@ class Scraper:
             return image_dirs
 
     # 뉴스기사 내용 db에 저장
-    def _save_article_content(self, article: Article) -> None:
-        pass
+    def _save_content(self, article: Article) -> None:
+        try:
+            self._cursor.execute(
+                "UPDATE news SET content = ? image_urls = ? WHERE id = ?",
+                (article.text, article.image_dirs, article.id),
+            )
+        except Exception as e:
+            raise DBSaveError(f"Error occured while saving {article.id} in database")
+            
 
     def _scrape_one_page(self, article_info: ArticleInfo) -> None:
         try:
@@ -110,8 +144,8 @@ class Scraper:
             image_dirs = None
             if image_urls:
                 image_dirs = self._save_images(article_info.id, image_urls)
-            article = Article(text, image_dirs)
-            self._save_article_content(article)
+            article = Article(article_info.id, text, image_dirs)
+            self._save_content(article)
             if self._delay:
                 time.sleep(self._delay)
 
@@ -130,14 +164,7 @@ class Scraper:
 
 
 class ChosunScraper(Scraper):
-    def _get_article_text(self, html) -> str:
-        return super()._get_article_text(html)
-
-    def _get_article_image_urls(self, html) -> Union[list[str], str]:
-        return super()._get_article_image_urls(html)
-
-    def _save_article_content(self) -> None:
-        return super()._save_article_content()
-
-    def _scrape_one_page(self):
-        return super()._scrape_one_page()
+    
+    @property
+    def press(self) -> str:
+        return "조선일보"

@@ -1,4 +1,3 @@
-
 class MajorError(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -38,10 +37,10 @@ class ImageSaveError(MinorError):
     def __str__(self):
         return self.msg
 
-class DBSaveError(MajorError):  
+
+class SaveError(MajorError):
     def __init__(self, msg):
         self.msg = msg
 
     def __str__(self):
         return self.msg
-

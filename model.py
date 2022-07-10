@@ -3,14 +3,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 
-
 @dataclass
 class ArticleInfo:
-    id: str = field(repr=True, hash=True)
+    id: str = field(repr=True)
     _date: str = field(repr=False)
-    press: str = field(repr=True)
+    press: str = field(repr=True, compare=True, hash=True)
     reporter: str | None = field(repr=False)
-    title: str = field(repr=True)
+    title: str = field(repr=True, compare=True, hash=True)
     _category1: str | None = field(repr=False)
     _category2: str | None = field(repr=False)
     _category3: str | None = field(repr=False)
@@ -26,8 +25,9 @@ class ArticleInfo:
     url: str = field(repr=False)
     excluded: bool | None = field(repr=False)
     content: str | None = field(repr=False)
-    search_keyword: str = field(repr=False) 
-    image_urls: list[str] | None = field(repr=False)
+    search_keyword: str = field(repr=False)
+    image_dirs: list[str] | None = field(repr=False)
+    hash_id: str= field(repr=False)
 
     date: datetime = field(repr=True, init=False)
     category1: list[str] | None = field(repr=False, init=False)
@@ -47,21 +47,30 @@ class ArticleInfo:
         self.category1 = self._category1.split(">") if self._category1 else None
         self.category2 = self._category2.split(">") if self._category2 else None
         self.category3 = self._category3.split(">") if self._category3 else None
-        self.event_type_1 = self._event_type_1.split(">") if self._event_type_1 else None
-        self.event_type_2 = self._event_type_2.split(">") if self._event_type_2 else None
-        self.event_type_3 = self._event_type_3.split(">") if self._event_type_3 else None
-        self.related_people = self._related_people.split(",") if self._related_people else None
-        self.related_location = self._related_location.split(",") if self._related_location else None
-        self.related_institutions = self._related_institutions.split(",") if self._related_institutions else None
+        self.event_type_1 = (
+            self._event_type_1.split(">") if self._event_type_1 else None
+        )
+        self.event_type_2 = (
+            self._event_type_2.split(">") if self._event_type_2 else None
+        )
+        self.event_type_3 = (
+            self._event_type_3.split(">") if self._event_type_3 else None
+        )
+        self.related_people = (
+            self._related_people.split(",") if self._related_people else None
+        )
+        self.related_location = (
+            self._related_location.split(",") if self._related_location else None
+        )
+        self.related_institutions = (
+            self._related_institutions.split(",")
+            if self._related_institutions
+            else None
+        )
         self.keywords = self._keywords.split(",") if self._keywords else None
         self.features = self._features.split(",") if self._features else None
+    
+    def set_values(self, content: str, image_dirs: list[str]):
+        self.content = content
+        self.image_dirs = image_dirs
 
-        
-
-
-
-@dataclass
-class Article:
-    id: str
-    text: str
-    image_dirs: list[str] | None

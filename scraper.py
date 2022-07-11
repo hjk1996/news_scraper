@@ -1,9 +1,19 @@
 from scraper_abc import Scraper
 from bs4 import BeautifulSoup
 import bs4
+from sqlite3 import Cursor
+from selenium import webdriver
+from errors import NoDriverError
 
 
+# 드라이버 필요함
 class ChosunScraper(Scraper):
+    def __init__(self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None) -> None:
+        super().__init__(db_curosr, delay, driver)
+
+        if driver == None:
+            raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
+
     @property
     def press(self) -> str:
         return "조선일보"
@@ -121,8 +131,15 @@ class HankyorehScraper(Scraper):
         text = article.text.strip().replace("\n", "")
         return text
 
-
+# 드라이버 필요함
 class KyunghyangScraper(Scraper):
+    def __init__(self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None) -> None:
+        super().__init__(db_curosr, delay, driver)
+
+        if driver == None:
+            raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
+            
+
     @property
     def press(self) -> str:
         return "경향신문"

@@ -1,14 +1,12 @@
 import abc
 from sqlite3 import Cursor
+from webbrowser import Chrome
 import requests
 import time
 import os
 import pandas as pd
 import pickle
 from selenium import webdriver
-import logging
-from selenium.webdriver.remote.remote_connection import LOGGER
-
 
 from bs4 import BeautifulSoup
 
@@ -27,13 +25,13 @@ class Scraper:
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, db_curosr: Cursor, delay: int = None, need_driver: bool = False
+        self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
     ) -> None:
         self._delay = delay
         self._cursor = db_curosr
-        self._need_driver = need_driver
+        self._driver = driver
         self._get_html_method = (
-            self._get_page_html_from_driver if need_driver else self._get_page_html
+            self._get_page_html_from_driver if driver != None else self._get_page_html
         )
 
         if not os.path.exists("./images"):
@@ -41,24 +39,10 @@ class Scraper:
 
         self._load_data_from_db()
 
-        if need_driver:
-            self._init_driver()
-
     @property
     @abc.abstractmethod
     def press(self) -> str:
         pass
-
-    def _init_driver(self) -> None:
-        options = webdriver.ChromeOptions()
-        options.add_argument("headless")
-        options.add_argument("window-size=1920x1080")
-        options.add_argument("disable-gpu")
-        options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        self._driver = webdriver.Chrome(
-            "./chromedriver.exe",
-            chrome_options=options,
-        )
 
     def _load_data_from_db(self):
         try:

@@ -13,6 +13,13 @@ class MinorError(Exception):
     def __str__(self):
         return self.msg
 
+class NoDriverError(MajorError):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
 
 class GetPageError(MajorError):
     def __init__(self, msg):

@@ -32,7 +32,9 @@ class Scraper:
         self._delay = delay
         self._cursor = db_curosr
         self._need_driver = need_driver
-        self._get_html_method = self._get_page_html_from_driver if need_driver else self._get_page_html
+        self._get_html_method = (
+            self._get_page_html_from_driver if need_driver else self._get_page_html
+        )
 
         if not os.path.exists("./images"):
             os.mkdir("./images")
@@ -53,7 +55,10 @@ class Scraper:
         options.add_argument("window-size=1920x1080")
         options.add_argument("disable-gpu")
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        self._driver = webdriver.Chrome("./chromedriver.exe", chrome_options=options,)
+        self._driver = webdriver.Chrome(
+            "./chromedriver.exe",
+            chrome_options=options,
+        )
 
     def _load_data_from_db(self):
         try:
@@ -88,12 +93,11 @@ class Scraper:
             raise MajorError(
                 f"Something went wrong while getting page html of {page_url}: {str(e)}"
             )
-    
+
     def _get_page_html_from_driver(self, page_url: str) -> BeautifulSoup:
         self._driver.get(page_url)
         page_source = self._driver.page_source
-        return BeautifulSoup(page_source, 'html.parser')
-
+        return BeautifulSoup(page_source, "html.parser")
 
     @abc.abstractmethod
     def _get_article_text(self, html: BeautifulSoup) -> str:

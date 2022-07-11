@@ -50,12 +50,34 @@ class ChoongAngScraper(Scraper):
         return " ".join(texts)
 
 
+class HankyorehScraper(Scraper):
+    @property
+    def press(self) -> str:
+        return "한겨레"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find("div", "article-text").find("div", "text")
+        photos: list[bs4.element.Tag] = article.find_all("div", "image")
+        for photo in photos:
+            image_url = photo.find("img")["src"]
+            if image_url.startswith("//"):
+                image_url = "https:" + image_url
+            image_urls.append(image_url)
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find("div", "article-text").find("div", "text")
+        text = article.text.strip().replace("\n", "")
+        return text
+
+
+
 class KyunghyangScraper(Scraper):
     @property
     def press(self) -> str:
         return "경향신문"
 
-    # http request 403 뜸. 해결해야함.
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
         article = html.find("div", "art_body")

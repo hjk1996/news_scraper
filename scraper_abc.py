@@ -74,7 +74,6 @@ class Scraper:
         try:
 
             res = requests.get(page_url)
-            print(res.status_code)
 
             if res.status_code != 200:
                 raise GetPageError(

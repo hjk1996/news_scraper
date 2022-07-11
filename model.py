@@ -27,7 +27,7 @@ class ArticleInfo:
     content: str | None = field(repr=False)
     search_keyword: str = field(repr=False)
     image_dirs: list[str] | None = field(repr=False)
-    hash_id: str= field(repr=False)
+    hash_id: str = field(repr=False)
 
     date: datetime = field(repr=True, init=False)
     category1: list[str] | None = field(repr=False, init=False)
@@ -69,8 +69,7 @@ class ArticleInfo:
         )
         self.keywords = self._keywords.split(",") if self._keywords else None
         self.features = self._features.split(",") if self._features else None
-    
+
     def set_values(self, content: str, image_dirs: list[str]):
         self.content = content
         self.image_dirs = image_dirs
-

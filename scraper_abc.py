@@ -5,6 +5,10 @@ import time
 import os
 import pandas as pd
 import pickle
+from selenium import webdriver
+import logging
+from selenium.webdriver.remote.remote_connection import LOGGER
+
 
 from bs4 import BeautifulSoup
 
@@ -22,38 +26,55 @@ from errors import (
 class Scraper:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, db_curosr: Cursor, delay: int = None) -> None:
+    def __init__(
+        self, db_curosr: Cursor, delay: int = None, need_driver: bool = False
+    ) -> None:
         self._delay = delay
         self._cursor = db_curosr
-    
+        self._need_driver = need_driver
+        self._get_html_method = self._get_page_html_from_driver if need_driver else self._get_page_html
+
         if not os.path.exists("./images"):
             os.mkdir("./images")
-        
+
         self._load_data_from_db()
+
+        if need_driver:
+            self._init_driver()
 
     @property
     @abc.abstractmethod
     def press(self) -> str:
         pass
 
+    def _init_driver(self) -> None:
+        options = webdriver.ChromeOptions()
+        options.add_argument("headless")
+        options.add_argument("window-size=1920x1080")
+        options.add_argument("disable-gpu")
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        self._driver = webdriver.Chrome("./chromedriver.exe", chrome_options=options,)
+
     def _load_data_from_db(self):
         try:
-            self._cursor.execute("SELECT * FROM news WHERE press =?", (self.press, ))
-            article_infos =  self._cursor.fetchall()
+            self._cursor.execute("SELECT * FROM news WHERE press =?", (self.press,))
+            article_infos = self._cursor.fetchall()
             self._article_infos = self._convert_to_article_info_object(article_infos)
         except Exception as e:
             print("Failed to load data from db")
             raise e
 
     @staticmethod
-    def _convert_to_article_info_object(article_infos: list[list[str]]) -> list[ArticleInfo]:
+    def _convert_to_article_info_object(
+        article_infos: list[list[str]],
+    ) -> list[ArticleInfo]:
         return [ArticleInfo(*info) for info in article_infos]
-
 
     def _get_page_html(self, page_url: str) -> BeautifulSoup:
         try:
 
             res = requests.get(page_url)
+            print(res.status_code)
 
             if res.status_code != 200:
                 raise GetPageError(
@@ -68,6 +89,12 @@ class Scraper:
             raise MajorError(
                 f"Something went wrong while getting page html of {page_url}: {str(e)}"
             )
+    
+    def _get_page_html_from_driver(self, page_url: str) -> BeautifulSoup:
+        self._driver.get(page_url)
+        page_source = self._driver.page_source
+        return BeautifulSoup(page_source, 'html.parser')
+
 
     @abc.abstractmethod
     def _get_article_text(self, html: BeautifulSoup) -> str:
@@ -122,17 +149,16 @@ class Scraper:
         except Exception as e:
             raise SaveError("Failed to save the data")
 
-
     def _scrape_one_page(self, article_info: ArticleInfo) -> None:
         try:
-            html = self._get_page_html(article_info.url)
+            html = self._get_html_method(article_info.url)
             text = self._get_article_text(html)
             image_urls = self._get_article_image_urls(html)
             image_dirs = None
             if image_urls:
                 image_dirs = self._save_images(article_info.hash_id, image_urls)
 
-            article_info.set_values(text, image_dirs)            
+            article_info.set_values(text, image_dirs)
             if self._delay:
                 time.sleep(self._delay)
 
@@ -148,6 +174,9 @@ class Scraper:
     def scrape(self):
         for url in self._article_infos:
             self._scrape_one_page(url)
-            break
-        
+
+        if self._need_driver:
+            self._driver.close()
+            self._driver.quit()
+
         self._save_data()

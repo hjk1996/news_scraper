@@ -49,5 +49,3 @@ if __name__ == "__main__":
         news_data.columns = list(columns.keys())
         news_data.dropna(axis=0, inplace=True, subset=["article_url"])
         news_data.to_sql("news", con, if_exists="append", index=False, dtype=columns)
-
- 

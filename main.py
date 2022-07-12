@@ -6,6 +6,7 @@ from scraper import (
     HankyorehScraper,
     ChosunScraper,
     HankookScraper,
+    MaeilScraper
 )
 import sqlite3
 from glob import glob
@@ -16,8 +17,13 @@ if __name__ == "__main__":
     con = sqlite3.connect("./news.db")
     cursor = con.cursor()
 
-    # scraper = DongAScraper(cursor)
-    # scraper.scrape()
+    scraper = MaeilScraper(cursor)
+    scraper.scrape()
+    # html = scraper._get_html_method("https://www.mk.co.kr/news/society/view/2022/07/582827/")
+    # image_urls = scraper._get_article_image_urls(html)
+    # text = scraper._get_article_text(html)
+    # print(text)
+
 
     # scraper = ChoongAngScraper(cursor)
     # scraper.scrape()

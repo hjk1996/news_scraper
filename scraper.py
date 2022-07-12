@@ -163,3 +163,25 @@ class KyunghyangScraper(Scraper):
             texts.append(paragraph.text.strip())
 
         return " ".join(texts)
+
+
+class MaeilScraper(Scraper):
+    @property
+    def press(self) -> str:
+        return "매일경제"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find("div", attrs={'id': 'article_body'})
+        photos: list[bs4.element.Tag] = article.find_all("img")
+        for photo in photos:
+            if photo['src'].startswith('https'):
+                image_urls.append(photo['src'])
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find("div", attrs={'id': 'article_body'})
+        article.find('figure').decompose()
+        article.find('div', 'zoom_txt').decompose()
+        text = article.find('div', 'art_txt').text.strip().replace('\n', '')
+        return text

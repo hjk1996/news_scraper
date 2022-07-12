@@ -162,7 +162,7 @@ class Scraper:
         for url in self._article_infos:
             self._scrape_one_page(url)
 
-        if self._need_driver:
+        if self._driver != None:
             self._driver.close()
             self._driver.quit()
 

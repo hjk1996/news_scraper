@@ -447,7 +447,8 @@ class AsiaKyungjeScraper(Scraper):
         return text
 
 class AjukyungjeScraper(Scraper):
-    
+    def press(self) -> str:
+        return "아주경제"    
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
         article = html.find('div',  attrs={"itemprop": "articleBody"})
@@ -482,7 +483,21 @@ class AjukyungjeScraper(Scraper):
 
 
 class FinancialNewsScraper(Scraper):
-    pass
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', 'cont_art')
+
+        hot_news = article.find('div', attrs={'id': 'hotNewsArea'})
+        if hot_news:
+            hot_news.decompose()
+
+        photos = article.find_all('img')
+        
+        for photo in photos:
+            image_urls.append(photo['src'])
+
+        return image_urls
+        
 
 class HankyungScraper(Scraper):
     pass

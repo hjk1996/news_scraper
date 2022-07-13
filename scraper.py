@@ -482,7 +482,45 @@ class AjukyungjeScraper(Scraper):
 
 
 class FinancialNewsScraper(Scraper):
-    pass
+    @property
+    def press(self) -> str:
+        return "파이낸셜뉴스"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', 'cont_art')
+
+        hot_news = article.find('div', attrs={'id': 'hotNewsArea'})
+        if hot_news:
+            hot_news.decompose()
+
+        photos = article.find_all('img')
+        
+        for photo in photos:
+            image_urls.append(photo['src'])
+
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find('div', 'cont_art')
+
+        fig_captions: list[bs4.element.Tag] = article.find_all('figcaption')
+        if fig_captions:
+            for caption in fig_captions:
+                caption.decompose()
+
+        span = article.find('span', attrs={'id': 'customByline'})
+        if span:
+            span.decompose()
+        
+        art_copyright = article.find('p', attrs={'class': 'art_copyright'})
+        if art_copyright:
+            art_copyright.decompose()
+        
+
+        text = " ".join(article.text.split())
+        return text
+
 
 class HankyungScraper(Scraper):
     pass

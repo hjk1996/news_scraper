@@ -445,3 +445,31 @@ class AsiaKyungjeScraper(Scraper):
             text = re.sub(r'\[아시아경제.*\]', '', text).strip()
 
         return text
+
+class AjukyungjeScraper(Scraper):
+    pass
+
+class FinancialNewsScraper(Scraper):
+    pass
+
+class HankyungScraper(Scraper):
+    pass
+
+class HeraldKyungjeScraper(Scraper):
+    pass
+
+class KBSScraper(Scraper):
+    pass
+
+class MBCScraper(Scraper):
+    pass
+
+class SBSScraper(Scraper):
+    pass
+
+
+class OBSScraper(Scraper):
+    pass
+
+class YTNScraper(Scraper):
+    pass

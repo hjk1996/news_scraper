@@ -447,7 +447,39 @@ class AsiaKyungjeScraper(Scraper):
         return text
 
 class AjukyungjeScraper(Scraper):
-    pass
+    
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div',  attrs={"itemprop": "articleBody"})
+
+        article_bot  = article.find('div', 'article_bot')
+        if article_bot:
+            article_bot.decompose()
+
+        like_wrap = article.find('div', 'like_wrap')
+        if like_wrap:
+            like_wrap.decompose()
+        
+        byline = article.find('div', 'byline')
+        if byline:
+            byline.decompose()
+
+        photos = article.find_all('img')
+        for photo in photos:
+            image_urls.append(photo['src'])
+
+        return image_urls
+    
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find('div',  attrs={"itemprop": "articleBody"})
+        
+        text_area = article.find('div', attrs={'style': 'text-align: justify;'})
+        text = " ".join(text_area.text.split())
+
+        if re.match(r'\[사진=.*\]', text):
+            text = re.sub(r'\[사진=.*\]', '', text).strip()
+        return text        
+
 
 class FinancialNewsScraper(Scraper):
     pass

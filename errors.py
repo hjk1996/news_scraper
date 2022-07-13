@@ -13,6 +13,7 @@ class MinorError(Exception):
     def __str__(self):
         return self.msg
 
+
 class NoDriverError(MajorError):
     def __init__(self, msg):
         self.msg = msg
@@ -51,6 +52,7 @@ class NotAllowedUrlFormatError(MajorError):
 
     def __str__(self):
         return self.msg
+
 
 class SaveError(MajorError):
     def __init__(self, msg):

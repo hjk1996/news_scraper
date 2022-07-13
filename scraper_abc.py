@@ -37,7 +37,7 @@ class Scraper:
 
         if not os.path.exists("./images"):
             os.mkdir("./images")
-        
+
         if not os.path.exists("./data"):
             os.mkdir("./data")
 

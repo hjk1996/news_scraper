@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup
 import bs4
 from sqlite3 import Cursor
 from selenium import webdriver
-from errors import NoDriverError
-
+from errors import NoDriverError, NotAllowedUrlFormatError
 
 # 드라이버 필요함
 class ChosunScraper(Scraper):
@@ -131,6 +130,7 @@ class HankyorehScraper(Scraper):
         text = article.text.strip().replace("\n", "")
         return text
 
+
 # 드라이버 필요함
 class KyunghyangScraper(Scraper):
     def __init__(self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None) -> None:
@@ -139,7 +139,6 @@ class KyunghyangScraper(Scraper):
         if driver == None:
             raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
             
-
     @property
     def press(self) -> str:
         return "경향신문"
@@ -165,7 +164,34 @@ class KyunghyangScraper(Scraper):
         return " ".join(texts)
 
 
-class MaeilScraper(Scraper):
+class KookminScraper(Scraper):
+    @property
+    def press(self) -> str:
+        return "국민일보"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find("div", attrs={'id': 'articleBody'})
+        figures: list[bs4.element.Tag] = article.find_all("figure")
+        for figure in figures:
+            photo = figure.find('img')
+            image_urls.append(photo['src'])
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find("div", attrs={'id': 'articleBody'})
+
+        subscribe = article.find("div", attrs={'class': 'ms_subscribe'})
+
+        if subscribe:
+            subscribe.decompose()
+
+        text = article.text.strip().replace('\n', '')
+        return text
+
+
+
+class MaeilKyungjeScraper(Scraper):
     @property
     def press(self) -> str:
         return "매일경제"
@@ -185,3 +211,71 @@ class MaeilScraper(Scraper):
         article.find('div', 'zoom_txt').decompose()
         text = article.find('div', 'art_txt').text.strip().replace('\n', '')
         return text
+
+
+class NaeilScraper(Scraper):
+    @property
+    def press(self) -> str:
+        return "내일신문"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find("div", "article")
+        photos: list[bs4.element.Tag] = article.find_all("img")
+        for photo in photos:
+            image_urls.append(photo['src'])
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        texts = []
+        article = html.find("div", "article")
+        paragraphs: list[bs4.element.Tag] = article.find_all("p")
+
+        for paragraph in paragraphs:
+            texts.append(paragraph.text.strip().replace('\n', ''))
+            
+        return " ".join(texts)
+
+
+class MunhwaScraper(Scraper):
+    @property
+    def press(self) -> str:
+        return "문화일보"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find("div", attrs={'id': 'NewsAdContent'})
+        photos: list[bs4.element.Tag] = article.find_all("img")
+        for photo in photos:
+            image_url = "".join(photo['src'].split('?')[:-1]) 
+            image_urls.append(image_url)
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find("div", attrs={'id': 'NewsAdContent'})
+        return article.text.strip().replace("\n", "")
+
+
+class SeoulScraper(Scraper):
+    def __init__(self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None) -> None:
+        super().__init__(db_curosr, delay, driver)
+        self._article_infos = [article_info for article_info in self._article_infos if 'www.seoul.co.kr' in article_info.url]
+
+    @property
+    def press(self) -> str:
+        return "서울신문"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        pass
+        # image_urls = []
+        # article = html.find("div", attrs={'id': 'NewsAdContent'})
+        # photos: list[bs4.element.Tag] = article.find_all("img")
+        # for photo in photos:
+        #     image_url = "".join(photo['src'].split('?')[:-1]) 
+        #     image_urls.append(image_url)
+        # return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        pass
+        # article = html.find("div", attrs={'id': 'NewsAdContent'})
+        # return article.text.strip().replace("\n", "")

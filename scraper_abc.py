@@ -33,9 +33,13 @@ class Scraper:
         self._get_html_method = (
             self._get_page_html_from_driver if driver != None else self._get_page_html
         )
+        self._saving_list = []
 
         if not os.path.exists("./images"):
             os.mkdir("./images")
+        
+        if not os.path.exists("./data"):
+            os.mkdir("./data")
 
         self._load_data_from_db()
 
@@ -131,7 +135,7 @@ class Scraper:
 
         try:
             with open(f"./data/{self.press}.pickle", "wb") as file:
-                pickle.dump(self._article_infos, file)
+                pickle.dump(self._saving_list, file)
 
         except Exception as e:
             raise SaveError("Failed to save the data")
@@ -146,6 +150,7 @@ class Scraper:
                 image_dirs = self._save_images(article_info.hash_id, image_urls)
 
             article_info.set_values(text, image_dirs)
+            self._saving_list.append(article_info)
             if self._delay:
                 time.sleep(self._delay)
 

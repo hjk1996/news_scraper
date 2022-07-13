@@ -1,70 +1,36 @@
 from numpy import choose
-from scraper import (
-    DongaScraper,
-    ChoongangScraper,
-    KyunghyangScraper,
-    HankyorehScraper,
-    ChosunScraper,
-    HankookScraper,
-    MaeilScraper
-)
+from scraper import *
+from scraper_abc import Scraper 
 import sqlite3
 from glob import glob
 
+def test_get_article_image_urls_method(scraper: Scraper, url: str) -> None:
+    html = scraper._get_html_method(url)
+    image_urls = scraper._get_article_image_urls(html)
+    
+    if not image_urls:
+        print("Failed to retrieve image urls from html")
+    else:
+        print(image_urls)
+
+def test_get_article_text_method(scraper: Scraper, url: str) -> None:
+    html = scraper._get_html_method(url)
+    text = scraper._get_article_text(html)
+    print(text)
+
+
+    
 
 if __name__ == "__main__":
 
     con = sqlite3.connect("./news.db")
     cursor = con.cursor()
 
-    scraper = MaeilScraper(cursor)
+    url = "http://www.munhwa.com/news/view.html?no=2022063001039910120004"
+    scraper = MunhwaScraper(cursor)
     scraper.scrape()
-    # html = scraper._get_html_method("https://www.mk.co.kr/news/society/view/2022/07/582827/")
-    # image_urls = scraper._get_article_image_urls(html)
-    # text = scraper._get_article_text(html)
-    # print(text)
 
+    # test_get_article_image_urls_method(scraper, url)
+    # test_get_article_text_method(scraper, url)
+    
 
-    # scraper = ChoongAngScraper(cursor)
-    # scraper.scrape()
-
-    # scraper = KyunghyangScraper(cursor, need_driver=True)
-    # scraper.scrape()
-    # html = scraper._get_page_html_from_driver(
-    #     "https://www.khan.co.kr/national/court-law/article/202207101908001"
-    # )
-    # urls = scraper._get_article_image_urls(html)
-    # text = scraper._get_article_text(html)
-    # print(urls)
-    # # print(text)
-    # scraper._driver.close()
-    # scraper._driver.quit()
-
-    # scraper = HankyorehScraper(cursor)
-    # scraper.scrape()
-    # html = scraper._get_html_method("https://www.hani.co.kr/arti/society/society_general/1050355.html")
-    # urls = scraper._get_article_image_urls(html)
-    # text = scraper._get_article_text(html)
-    # print(urls)
-    # print(text)
-
-    # scraper = ChosunScraper(cursor, need_driver=True)
-    # scraper.scrape()
-    # html = scraper._get_html_method("https://www.chosun.com/politics/politics_general/2022/07/11/PZ42VU4TZNEFDPVNUQ2DM7VXPA/")
-    # urls = scraper._get_article_image_urls(html)
-    # text = scraper._get_article_text(html)
-    # print(urls)
-    # print(text)
-
-    # scraper._driver.close()
-    # scraper._driver.quit()
-
-    # scraper = HankookScraper(cursor)
-    # html = scraper._get_html_method(
-    #     "https://www.hankookilbo.com/News/Read/A2022071111190004907"
-    # )
-    # # print(html.find("div", attrs= {"itemprop": "articleBody"}))
-    # urls = scraper._get_article_image_urls(html)
-    # text = scraper._get_article_text(html)
-    # print(urls)
-    # print(text)

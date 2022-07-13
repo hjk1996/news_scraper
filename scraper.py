@@ -483,20 +483,7 @@ class AjukyungjeScraper(Scraper):
 
 
 class FinancialNewsScraper(Scraper):
-    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
-        image_urls = []
-        article = html.find('div', 'cont_art')
-
-        hot_news = article.find('div', attrs={'id': 'hotNewsArea'})
-        if hot_news:
-            hot_news.decompose()
-
-        photos = article.find_all('img')
-        
-        for photo in photos:
-            image_urls.append(photo['src'])
-
-        return image_urls
+    pass
         
 
 class HankyungScraper(Scraper):

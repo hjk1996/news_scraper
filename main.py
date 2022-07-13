@@ -25,8 +25,8 @@ if __name__ == "__main__":
     con = sqlite3.connect("./news.db")
     cursor = con.cursor()
 
-    url = "https://www.ajunews.com/view/20220713100841894?utm_source=ajunews&utm_medium=view&utm_campaign=min"
-    scraper = AjukyungjeScraper(cursor)
+    url = "https://www.fnnews.com/news/202206291031018012"
+    scraper = FinancialNewsScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)

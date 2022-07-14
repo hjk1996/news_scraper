@@ -676,4 +676,30 @@ class OBSScraper(Scraper):
         return text
 
 class YTNScraper(Scraper):
-    pass
+    @property
+    def press(self) -> str:
+        return "YTN"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', attrs={'itemprop': 'articleBody'})
+        photos: list[bs4.element.Tag] = article.find_all('img')
+        for photo in photos:
+            image_url = photo.get('src')
+            if image_url:
+                image_urls.append(image_url)
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        text = ''
+        article = html.find('div', attrs={'class': 'article'})
+        text = article.text
+        text = re.sub(r"※ '당신의 제보가 뉴스가 됩니다'", '', text)
+        text = re.sub(r'\[카카오톡\] YTN 검색해 채널 추가', '', text)
+        text = re.sub(r'\[전화\] 02-398-8585', '', text)
+        text = re.sub(r'\[메일\]', '', text)
+        text = re.sub(r'\[저작권자.*\]', '', text)
+        text = ' '.join(text.split())
+        return text
+
+

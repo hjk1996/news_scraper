@@ -27,12 +27,12 @@ if __name__ == "__main__":
     cursor = con.cursor()
 
     # driver = make_chrome_driver()
-    url = "https://news.sbs.co.kr/news/endPage.do?news_id=N1006822603&plink=ENTER&cooper=SBSNEWSMAIN"
-    scraper = SBSScraper(cursor)
+    url = "http://www.obsnews.co.kr/news/articleView.html?idxno=1359652"
+    scraper = OBSScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)
     test_get_article_text_method(scraper, url)
 
-    # driver.quit()
     # driver.close()
+    # driver.quit()

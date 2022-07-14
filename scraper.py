@@ -660,7 +660,20 @@ class SBSScraper(Scraper):
 
 
 class OBSScraper(Scraper):
-    pass
+    @property
+    def press(self) -> str:
+        return "OBS"
+    
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        return None
+        
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        text = ''
+        article = html.find('article', attrs={'itemprop': 'articleBody'})
+        text = article.text        
+        text = " ".join(text.split())
+        text = re.sub(r'\【.*\】', '', text)
+        return text
 
 class YTNScraper(Scraper):
     pass

@@ -523,9 +523,32 @@ class FinancialNewsScraper(Scraper):
         text = " ".join(article.text.split())
         return text
 
-
+#드라이버 필요함
 class HankyungScraper(Scraper):
-    pass
+    def __init__(
+        self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
+    ) -> None:
+        super().__init__(db_curosr, delay, driver)
+
+        if driver == None:
+            raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
+
+    @property
+    def press(self) -> str:
+        return "한국경제"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', attrs={'id': 'articletxt'})
+        photos = article.find_all('img')
+        for photo in photos:
+            image_urls.append(photo['src'])
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find('div', attrs={'id': 'articletxt'})
+        text = " ".join(article.text.split())
+        return text
 
 class HeraldKyungjeScraper(Scraper):
     pass

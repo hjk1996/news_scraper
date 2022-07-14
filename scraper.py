@@ -632,7 +632,31 @@ class MBCScraper(Scraper):
 
 
 class SBSScraper(Scraper):
-    pass
+    @property
+    def press(self) -> str:
+        return "SBS"
+    
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', attrs={'class': 'article_cont_area'})
+        photos: list[bs4.element.Tag] = article.find_all('div', attrs={'class': 'article_image'})
+        photos = [div.find('img') for div in photos] 
+        
+        for photo in photos:
+            image_url = photo['src']
+            if image_url.startswith('//'):
+                image_url = 'https:' + image_url
+            image_urls.append(image_url)
+        return image_urls
+
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find('div', attrs={'itemprop': 'articleBody'})
+        text = " ".join(article.text.split())
+        text = re.sub(r'\(사진.*\)', '', text)
+        text = re.sub(r'\(SBS.*\)', '', text)
+        return text
+
+
 
 
 class OBSScraper(Scraper):

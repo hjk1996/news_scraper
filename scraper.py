@@ -581,7 +581,29 @@ class HeraldKyungjeScraper(Scraper):
         return text
 
 class KBSScraper(Scraper):
-    pass
+    @property
+    def press(self) -> str:
+        return "KBS"
+
+    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
+        image_urls = []
+        article = html.find('div', attrs={'class': 'landing-box'})
+        photos: list[bs4.element.Tag] = article.find_all('img')
+        for photo in photos:
+            image_url = photo['src']
+            if image_url.startswith('/data'):
+                image_url = 'https://news.kbs.co.kr' + image_url
+                image_urls.append(image_url)
+        return image_urls
+    
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find('div', attrs={'id': 'cont_newstext'})
+        text = " ".join(article.text.split())
+        text = re.sub(r'\[사진 출처.*\]', '', text).strip()
+        return text
+
+        
+        
 
 class MBCScraper(Scraper):
     pass

@@ -27,8 +27,8 @@ if __name__ == "__main__":
     cursor = con.cursor()
 
     # driver = make_chrome_driver()
-    url = "http://biz.heraldcorp.com/view.php?ud=20220714000133"
-    scraper = HeraldKyungjeScraper(cursor)
+    url = "https://news.kbs.co.kr/news/view.do?ncd=5508926"
+    scraper = KBSScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)

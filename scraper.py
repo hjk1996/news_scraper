@@ -550,7 +550,7 @@ class HankyungScraper(Scraper):
         text = " ".join(article.text.split())
         return text
 
-# TO-DO
+
 class HeraldKyungjeScraper(Scraper):
     @property
     def press(self) -> str:

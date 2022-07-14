@@ -447,6 +447,7 @@ class AsiaKyungjeScraper(Scraper):
         return text
 
 class AjukyungjeScraper(Scraper):
+    @property
     def press(self) -> str:
         return "아주경제"    
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:

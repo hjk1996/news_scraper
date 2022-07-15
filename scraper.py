@@ -624,15 +624,10 @@ class HeraldKyungjeScraper(Scraper):
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ""
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        paragraphs: list[bs4.element.Tag] = article.find_all("p")
-        for p in paragraphs:
-            text += p.text
-
-        if re.match(r"\[헤럴드경제=.*\]", text):
-            text = re.sub(r"\[헤럴드경제=.*\]", "", text).strip()
-
+        text = article.text
+        text = re.sub(r"\[헤럴드경제.*\]", "", text).strip()
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

@@ -651,7 +651,10 @@ class KBSScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"id": "cont_newstext"})
         text = article.text
-        text = re.sub(r"\[사진 출처.*\]", "", text).strip()
+        text = re.sub(r"\[.*\]", "", text).strip()
+        text = re.sub(r'영상편집:[ㄱ-ㅣ가-힣]+', '', text)
+        text = re.sub(r'촬영기자:[ㄱ-ㅣ가-힣]+', '', text)
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

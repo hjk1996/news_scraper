@@ -65,7 +65,7 @@ class DongaScraper(Scraper):
         article.find("div", "article_footer").decompose()
         text = article.text
         text = self._remove_not_korean(text)
-        text = self._remove_unnecessary_white_space(text) 
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -208,7 +208,9 @@ class KookminScraper(Scraper):
             subscribe.decompose()
 
         text = article.text
-        text = text.replace("GoodNews paper ⓒ 국민일보(www.kmib.co.kr), 무단전재 및 수집, 재배포금지", "")
+        text = text.replace(
+            "GoodNews paper ⓒ 국민일보(www.kmib.co.kr), 무단전재 및 수집, 재배포금지", ""
+        )
         text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
@@ -241,18 +243,18 @@ class MaeilKyungjeScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"id": "article_body"})
-        
-        figure =  article.find("figure")
+
+        figure = article.find("figure")
         if figure:
             figure.decompose()
-        
-        zoom_txt = article.find('div', 'zoom_txt')
+
+        zoom_txt = article.find("div", "zoom_txt")
         if zoom_txt:
             zoom_txt.decompose()
 
         text = article.text
-        text = re.sub(r'\[.*기자\]', '', text)
-        text = re.sub(r'\[ⓒ.*\]', '', text)
+        text = re.sub(r"\[.*기자\]", "", text)
+        text = re.sub(r"\[ⓒ.*\]", "", text)
         text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
@@ -365,8 +367,8 @@ class SegyeScraper(Scraper):
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for p in paragraphs:
             text += p.text
-        
-        text = re.sub(r'\[ⓒ.*\]', '', text)
+
+        text = re.sub(r"\[ⓒ.*\]", "", text)
         # text = text.replace("[ⓒ 세계일보 & Segye.com, 무단전재 및 재배포 금지]", "")
         text = self._remove_reporter_name(text)
         text = self._remove_not_korean(text)
@@ -399,7 +401,7 @@ class MoneyTodayScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
 
-        tds: list[bs4.element.Tag] = article.find_all('td', attrs={'class': 'desc'})
+        tds: list[bs4.element.Tag] = article.find_all("td", attrs={"class": "desc"})
         if tds:
             for td in tds:
                 td.decompose()
@@ -426,7 +428,7 @@ class SeoulKyungjeScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
 
-        captions: list[bs4.element.Tag] = article.find_all('figcaption')
+        captions: list[bs4.element.Tag] = article.find_all("figcaption")
         if captions:
             for caption in captions:
                 caption.decompose()
@@ -508,20 +510,20 @@ class AjuKyungjeScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        
-        article_bot = article.find('div', attrs={'class': 'article_bot'})
+
+        article_bot = article.find("div", attrs={"class": "article_bot"})
         if article_bot:
             article_bot.decompose()
-        
-        like_wrap = article.find('div', attrs={'class': 'like_wrap'})
+
+        like_wrap = article.find("div", attrs={"class": "like_wrap"})
         if like_wrap:
             like_wrap.decompose()
 
-        byline = article.find('div', attrs={'class': 'byline'})
+        byline = article.find("div", attrs={"class": "byline"})
         if byline:
             byline.decompose()
-        
-        copy = article.find('p', attrs={'class': 'copy'})
+
+        copy = article.find("p", attrs={"class": "copy"})
         if copy:
             copy.decompose()
 
@@ -570,7 +572,7 @@ class FinancialNewsScraper(Scraper):
             art_copyright.decompose()
 
         text = article.text
-        text = re.sub(r'【파이낸셜.*】', '', text)
+        text = re.sub(r"【파이낸셜.*】", "", text)
         text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
@@ -652,8 +654,8 @@ class KBSScraper(Scraper):
         article = html.find("div", attrs={"id": "cont_newstext"})
         text = article.text
         text = re.sub(r"\[.*\]", "", text).strip()
-        text = re.sub(r'영상편집:[ㄱ-ㅣ가-힣]+', '', text)
-        text = re.sub(r'촬영기자:[ㄱ-ㅣ가-힣]+', '', text)
+        text = re.sub(r"영상편집:[ㄱ-ㅣ가-힣]+", "", text)
+        text = re.sub(r"촬영기자:[ㄱ-ㅣ가-힣]+", "", text)
         text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
@@ -677,12 +679,24 @@ class MBCScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
+
         captions: list[bs4.element.Tag] = article.find_all(
             "p", attrs={"class": "caption"}
         )
-        for caption in captions:
-            caption.decompose()
-        text = self._remove_unnecessary_white_space(article.text)
+        if captions:
+            for caption in captions:
+                caption.decompose()
+
+   
+
+        text = article.text
+        text = text.replace("앵커", "")
+        text = text.replace("MBC 뉴스는 24시간 여러분의 제보를 기다립니다.", "")
+        text = text.replace("▷ 전화 02-784-4000", "")
+        text = text.replace("▷ 이메일 mbcjebo@mbc.co.kr", "")
+        text = text.replace("▷ 카카오톡 @mbc제보", "")
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -709,8 +723,12 @@ class SBSScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
         text = article.text
+
+        text = re.sub(r"<앵커>", "", text)
+        text = re.sub(r"<기자>", "", text)
         text = re.sub(r"\(사진.*\)", "", text)
         text = re.sub(r"\(SBS.*\)", "", text)
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

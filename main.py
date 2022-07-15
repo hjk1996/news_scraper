@@ -29,8 +29,8 @@ if __name__ == "__main__":
     driver = None
 
     # driver = make_chrome_driver()
-    url = "https://news.sbs.co.kr/news/endPage.do?news_id=N1006733935&plink=ORI&cooper=ETC"
-    scraper = SBSScraper(cursor)
+    url = "http://www.obsnews.co.kr/news/articleView.html?idxno=1353536"
+    scraper = OBSScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)

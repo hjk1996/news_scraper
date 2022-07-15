@@ -215,6 +215,17 @@ class KookminScraper(Scraper):
 
 
 class MaeilKyungjeScraper(Scraper):
+    def __init__(
+        self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
+    ) -> None:
+        super().__init__(db_curosr, delay, driver)
+
+        self._article_infos = [
+            article_info
+            for article_info in self._article_infos
+            if "news.mk.co.kr" in article_info.url
+        ]
+
     @property
     def press(self) -> str:
         return "매일경제"
@@ -354,43 +365,11 @@ class SegyeScraper(Scraper):
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for p in paragraphs:
             text += p.text
-        text = text.replace("[ⓒ 세계일보 & Segye.com, 무단전재 및 재배포 금지]", "")
-        text = self._remove_unnecessary_white_space(text)
-        return text
-
-
-class MaekyungScraper(Scraper):
-    def __init__(
-        self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
-    ) -> None:
-        super().__init__(db_curosr, delay, driver)
-
-        self._article_infos = [
-            article_info
-            for article_info in self._article_infos
-            if "news.mk.co.kr" in article_info.url
-        ]
-
-    @property
-    def press(self) -> str:
-        return "매일경제"
-
-    def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
-        image_urls = []
-        article = html.find("div", attrs={"itemprop": "articleBody"}).find(
-            "div", "art_txt"
-        )
-        photos: list[bs4.element.Tag] = article.find_all("img")
-        for photo in photos:
-            image_urls.append(photo["src"])
-        return image_urls
-
-    def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find("div", attrs={"itemprop": "articleBody"}).find(
-            "div", "art_txt"
-        )
-        text = article.text
-        text = text.replace("[ⓒ 매일경제 & mk.co.kr, 무단전재 및 재배포 금지]", "")
+        
+        text = re.sub(r'\[ⓒ.*\]', '', text)
+        # text = text.replace("[ⓒ 세계일보 & Segye.com, 무단전재 및 재배포 금지]", "")
+        text = self._remove_reporter_name(text)
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 
@@ -419,7 +398,14 @@ class MoneyTodayScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
+
+        tds: list[bs4.element.Tag] = article.find_all('td', attrs={'class': 'desc'})
+        if tds:
+            for td in tds:
+                td.decompose()
+
         text = article.text
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 
@@ -440,16 +426,18 @@ class SeoulKyungjeScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
 
+        captions: list[bs4.element.Tag] = article.find_all('figcaption')
+        if captions:
+            for caption in captions:
+                caption.decompose()
+
         article_copy = article.find("div", "article_copy")
 
         if article_copy:
             article_copy.decompose()
 
         text = article.text
-
-        if text.startswith("viewer "):
-            text = text.replace("viewer ", "")
-
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
 
         return text
@@ -484,9 +472,8 @@ class AsiaKyungjeScraper(Scraper):
         for p in paragraphs:
             text += p.text
 
-        if re.match(r"\[아시아경제.*\]", text):
-            text = re.sub(r"\[아시아경제.*\]", "", text).strip()
-
+        text = re.sub(r"\[아시아경제.*\]", "", text).strip()
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
 
         return text

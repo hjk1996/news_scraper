@@ -29,8 +29,8 @@ if __name__ == "__main__":
     driver = None
 
     # driver = make_chrome_driver()
-    url = "http://www.obsnews.co.kr/news/articleView.html?idxno=1353536"
-    scraper = OBSScraper(cursor)
+    url = "https://www.ytn.co.kr/_ln/0101_202205312147243645"
+    scraper = YTNScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)

@@ -773,8 +773,13 @@ class YTNScraper(Scraper):
         text = article.text
         text = re.sub(r"※ '당신의 제보가 뉴스가 됩니다'", "", text)
         text = re.sub(r"\[카카오톡\] YTN 검색해 채널 추가", "", text)
-        text = re.sub(r"\[전화\] 02-398-8585", "", text)
+        text = re.sub(r"\[앵커\]", "", text)
+        text = re.sub(r"\[기자\]", "", text)
         text = re.sub(r"\[메일\]", "", text)
+        text = re.sub(r"\[전화\] 02-398-8585", "", text)
         text = re.sub(r"\[저작권자.*\]", "", text)
+        text = re.sub(r"YTN [ㄱ-ㅣ가-힣]+", "", text)
+
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text

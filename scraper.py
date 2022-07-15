@@ -32,13 +32,16 @@ class ChosunScraper(Scraper):
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ""
+        text_list = []
         article = html.find("section", "article-body")
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for paragraph in paragraphs:
-            text += paragraph.text
+            text_list.append(paragraph.text)
 
-        return " ".join(text.split())
+        text = " ".join(text_list)
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
+        return text
 
 
 class DongaScraper(Scraper):
@@ -60,7 +63,9 @@ class DongaScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", "article_txt")
         article.find("div", "article_footer").decompose()
-        text = " ".join(article.text.split())
+        text = article.text
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text) 
         return text
 
 
@@ -79,14 +84,17 @@ class ChoongangScraper(Scraper):
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ""
+        text_list = []
         article = html.find("div", "article_body fs3")
 
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for paragraph in paragraphs:
-            text += paragraph.text
+            text_list.append(paragraph.text)
 
-        return " ".join(text.split())
+        text = " ".join(text_list)
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
+        return text
 
 
 class HankookScraper(Scraper):
@@ -111,7 +119,9 @@ class HankookScraper(Scraper):
         for p in paragraphs:
             text += p.text
 
-        return " ".join(text.split())
+        text = self._remove_unnecessary_white_space(text)
+
+        return text
 
 
 class HankyorehScraper(Scraper):
@@ -132,7 +142,9 @@ class HankyorehScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", "article-text").find("div", "text")
-        text = " ".join(article.text.split())
+        text = article.text
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -168,7 +180,9 @@ class KyunghyangScraper(Scraper):
         for paragraph in paragraphs:
             text += paragraph.text
 
-        return " ".join(text.split())
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
+        return text
 
 
 class KookminScraper(Scraper):
@@ -193,7 +207,10 @@ class KookminScraper(Scraper):
         if subscribe:
             subscribe.decompose()
 
-        text = " ".join(article.text.split())
+        text = article.text
+        text = text.replace("GoodNews paper ⓒ 국민일보(www.kmib.co.kr), 무단전재 및 수집, 재배포금지", "")
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -213,9 +230,20 @@ class MaeilKyungjeScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"id": "article_body"})
-        article.find("figure").decompose()
-        article.find("div", "zoom_txt").decompose()
-        text = " ".join(article.find("div", "art_txt").text.split())
+        
+        figure =  article.find("figure")
+        if figure:
+            figure.decompose()
+        
+        zoom_txt = article.find('div', 'zoom_txt')
+        if zoom_txt:
+            zoom_txt.decompose()
+
+        text = article.text
+        text = re.sub(r'\[.*기자\]', '', text)
+        text = re.sub(r'\[ⓒ.*\]', '', text)
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -240,7 +268,10 @@ class NaeilScraper(Scraper):
         for paragraph in paragraphs:
             text += paragraph.text
 
-        return " ".join(text.split())
+        text = self._remove_not_korean(text)
+        text = self._remove_unnecessary_white_space(text)
+
+        return text
 
 
 class MunhwaScraper(Scraper):
@@ -259,7 +290,10 @@ class MunhwaScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"id": "NewsAdContent"})
-        text = " ".join(article.text.split())
+        text = article.text
+        text = self._remove_not_korean(text)
+        text = self._remove_reporter_name(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -291,7 +325,10 @@ class SeoulScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        text = " ".join(article.text.split())
+        text = article.text
+        text = self._remove_not_korean(text)
+        text = self._remove_reporter_name(text)
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -317,8 +354,8 @@ class SegyeScraper(Scraper):
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for p in paragraphs:
             text += p.text
-        text = " ".join(text.split())
         text = text.replace("[ⓒ 세계일보 & Segye.com, 무단전재 및 재배포 금지]", "")
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -340,20 +377,25 @@ class MaekyungScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find("div", attrs={"itemprop": "articleBody"}).find('div', 'art_txt')
+        article = html.find("div", attrs={"itemprop": "articleBody"}).find(
+            "div", "art_txt"
+        )
         photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find("div", attrs={"itemprop": "articleBody"}).find('div', 'art_txt')
-        text = " ".join(article.text.split()) 
+        article = html.find("div", attrs={"itemprop": "articleBody"}).find(
+            "div", "art_txt"
+        )
+        text = article.text
         text = text.replace("[ⓒ 매일경제 & mk.co.kr, 무단전재 및 재배포 금지]", "")
+        text = self._remove_unnecessary_white_space(text)
         return text
 
+
 class MoneyTodayScraper(Scraper):
-    
     @property
     def press(self) -> str:
         return "머니투데이"
@@ -363,124 +405,131 @@ class MoneyTodayScraper(Scraper):
         article = html.find("div", attrs={"itemprop": "articleBody"})
         photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_url = photo['src']
-            
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
+            image_url = photo["src"]
 
-            if image_url.endswith('/dims/optimize'):
-                image_url = image_url.replace('/dims/optimize', '')
-            
+            if image_url.startswith("//"):
+                image_url = "https:" + image_url
+
+            if image_url.endswith("/dims/optimize"):
+                image_url = image_url.replace("/dims/optimize", "")
+
             image_urls.append(image_url)
 
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        text = " ".join(article.text.split()) 
+        text = article.text
+        text = self._remove_unnecessary_white_space(text)
         return text
 
+
 class SeoulKyungjeScraper(Scraper):
-    
     @property
     def press(self) -> str:
         return "서울경제"
-    
+
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
         return image_urls
-    
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
 
-        article_copy = article.find('div', 'article_copy')
+        article_copy = article.find("div", "article_copy")
 
         if article_copy:
             article_copy.decompose()
 
-        text = " ".join(article.text.split())
+        text = article.text
 
-        if text.startswith('viewer '):
-            text = text.replace('viewer ', '')
+        if text.startswith("viewer "):
+            text = text.replace("viewer ", "")
 
-        return text 
+        text = self._remove_unnecessary_white_space(text)
+
+        return text
+
 
 class AsiaKyungjeScraper(Scraper):
-
     @property
     def press(self) -> str:
-        return '아시아경제'
+        return "아시아경제"
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
         article = html.find("div", attrs={"itemprop": "articleBody"})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
         return image_urls
-    
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ''
+        text = ""
         article = html.find("div", attrs={"itemprop": "articleBody"})
 
-        im_re_box = article.find('div', 'im_re_box')
+        im_re_box = article.find("div", "im_re_box")
         if im_re_box:
             im_re_box.decompose()
-        
-        txt_prohibition = article.find('p', 'txt_prohibition')
+
+        txt_prohibition = article.find("p", "txt_prohibition")
         if txt_prohibition:
             txt_prohibition.decompose()
 
         paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for p in paragraphs:
             text += p.text
-        
-        text = ' '.join(text.split())
 
-        if re.match(r'\[아시아경제.*\]', text):
-            text = re.sub(r'\[아시아경제.*\]', '', text).strip()
+        if re.match(r"\[아시아경제.*\]", text):
+            text = re.sub(r"\[아시아경제.*\]", "", text).strip()
+
+        text = self._remove_unnecessary_white_space(text)
 
         return text
+
 
 class AjukyungjeScraper(Scraper):
     @property
     def press(self) -> str:
-        return "아주경제"    
+        return "아주경제"
+
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div',  attrs={"itemprop": "articleBody"})
+        article = html.find("div", attrs={"itemprop": "articleBody"})
 
-        article_bot  = article.find('div', 'article_bot')
+        article_bot = article.find("div", "article_bot")
         if article_bot:
             article_bot.decompose()
 
-        like_wrap = article.find('div', 'like_wrap')
+        like_wrap = article.find("div", "like_wrap")
         if like_wrap:
             like_wrap.decompose()
-        
-        byline = article.find('div', 'byline')
+
+        byline = article.find("div", "byline")
         if byline:
             byline.decompose()
 
-        photos = article.find_all('img')
+        photos = article.find_all("img")
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
 
         return image_urls
-    
-    def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div',  attrs={"itemprop": "articleBody"})
-        
-        text_area = article.find('div', attrs={'style': 'text-align: justify;'})
-        text = " ".join(text_area.text.split())
 
-        if re.match(r'\[사진=.*\]', text):
-            text = re.sub(r'\[사진=.*\]', '', text).strip()
-        return text        
+    def _get_article_text(self, html: BeautifulSoup) -> str:
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+
+        text_area = article.find("div", attrs={"style": "text-align: justify;"})
+        text = text_area.text
+
+        if re.match(r"\[사진=.*\]", text):
+            text = re.sub(r"\[사진=.*\]", "", text).strip()
+
+        text = self._remove_unnecessary_white_space(text)
+        return text
 
 
 class FinancialNewsScraper(Scraper):
@@ -490,40 +539,41 @@ class FinancialNewsScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', 'cont_art')
+        article = html.find("div", "cont_art")
 
-        hot_news = article.find('div', attrs={'id': 'hotNewsArea'})
+        hot_news = article.find("div", attrs={"id": "hotNewsArea"})
         if hot_news:
             hot_news.decompose()
 
-        photos = article.find_all('img')
-        
+        photos = article.find_all("img")
+
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
 
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div', 'cont_art')
+        article = html.find("div", "cont_art")
 
-        fig_captions: list[bs4.element.Tag] = article.find_all('figcaption')
+        fig_captions: list[bs4.element.Tag] = article.find_all("figcaption")
         if fig_captions:
             for caption in fig_captions:
                 caption.decompose()
 
-        span = article.find('span', attrs={'id': 'customByline'})
+        span = article.find("span", attrs={"id": "customByline"})
         if span:
             span.decompose()
-        
-        art_copyright = article.find('p', attrs={'class': 'art_copyright'})
+
+        art_copyright = article.find("p", attrs={"class": "art_copyright"})
         if art_copyright:
             art_copyright.decompose()
-        
 
-        text = " ".join(article.text.split())
+        text = article.text
+        text = self._remove_unnecessary_white_space(text)
         return text
 
-#드라이버 필요함
+
+# 드라이버 필요함
 class HankyungScraper(Scraper):
     def __init__(
         self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
@@ -539,15 +589,16 @@ class HankyungScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'id': 'articletxt'})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        article = html.find("div", attrs={"id": "articletxt"})
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_urls.append(photo['src'])
+            image_urls.append(photo["src"])
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div', attrs={'id': 'articletxt'})
-        text = " ".join(article.text.split())
+        article = html.find("div", attrs={"id": "articletxt"})
+        text = article.text
+        text = self._remove_unnecessary_white_space(text)
         return text
 
 
@@ -558,27 +609,28 @@ class HeraldKyungjeScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_url = photo['src']
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
+            image_url = photo["src"]
+            if image_url.startswith("//"):
+                image_url = "https:" + image_url
             image_urls.append(image_url)
         return image_urls
-    
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ''
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        paragraphs: list[bs4.element.Tag] = article.find_all('p')
+        text = ""
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        paragraphs: list[bs4.element.Tag] = article.find_all("p")
         for p in paragraphs:
             text += p.text
 
-        text = " ".join(text.split())
+        if re.match(r"\[헤럴드경제=.*\]", text):
+            text = re.sub(r"\[헤럴드경제=.*\]", "", text).strip()
 
-        if re.match(r'\[헤럴드경제=.*\]', text):
-            text = re.sub(r'\[헤럴드경제=.*\]', '', text).strip()
+        text = self._remove_unnecessary_white_space(text)
         return text
+
 
 class KBSScraper(Scraper):
     @property
@@ -587,23 +639,22 @@ class KBSScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'class': 'landing-box'})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        article = html.find("div", attrs={"class": "landing-box"})
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_url = photo['src']
-            if image_url.startswith('/data'):
-                image_url = 'https://news.kbs.co.kr' + image_url
+            image_url = photo["src"]
+            if image_url.startswith("/data"):
+                image_url = "https://news.kbs.co.kr" + image_url
                 image_urls.append(image_url)
         return image_urls
-    
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div', attrs={'id': 'cont_newstext'})
-        text = " ".join(article.text.split())
-        text = re.sub(r'\[사진 출처.*\]', '', text).strip()
+        article = html.find("div", attrs={"id": "cont_newstext"})
+        text = article.text
+        text = re.sub(r"\[사진 출처.*\]", "", text).strip()
+        text = self._remove_unnecessary_white_space(text)
         return text
 
-        
-        
 
 class MBCScraper(Scraper):
     @property
@@ -612,68 +663,71 @@ class MBCScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_url = photo['src']
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
+            image_url = photo["src"]
+            if image_url.startswith("//"):
+                image_url = "https:" + image_url
             image_urls.append(image_url)
         return image_urls
-    
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        captions: list[bs4.element.Tag] = article.find_all('p', attrs={'class': 'caption'})
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        captions: list[bs4.element.Tag] = article.find_all(
+            "p", attrs={"class": "caption"}
+        )
         for caption in captions:
             caption.decompose()
-        text = " ".join(article.text.split())
+        text = self._remove_unnecessary_white_space(article.text)
         return text
-
 
 
 class SBSScraper(Scraper):
     @property
     def press(self) -> str:
         return "SBS"
-    
+
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'class': 'article_cont_area'})
-        photos: list[bs4.element.Tag] = article.find_all('div', attrs={'class': 'article_image'})
-        photos = [div.find('img') for div in photos] 
-        
+        article = html.find("div", attrs={"class": "article_cont_area"})
+        photos: list[bs4.element.Tag] = article.find_all(
+            "div", attrs={"class": "article_image"}
+        )
+        photos = [div.find("img") for div in photos]
+
         for photo in photos:
-            image_url = photo['src']
-            if image_url.startswith('//'):
-                image_url = 'https:' + image_url
+            image_url = photo["src"]
+            if image_url.startswith("//"):
+                image_url = "https:" + image_url
             image_urls.append(image_url)
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        text = " ".join(article.text.split())
-        text = re.sub(r'\(사진.*\)', '', text)
-        text = re.sub(r'\(SBS.*\)', '', text)
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        text = article.text
+        text = re.sub(r"\(사진.*\)", "", text)
+        text = re.sub(r"\(SBS.*\)", "", text)
+        text = self._remove_unnecessary_white_space(text)
         return text
-
-
 
 
 class OBSScraper(Scraper):
     @property
     def press(self) -> str:
         return "OBS"
-    
+
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         return None
-        
+
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ''
-        article = html.find('article', attrs={'itemprop': 'articleBody'})
-        text = article.text        
-        text = " ".join(text.split())
-        text = re.sub(r'\【.*\】', '', text)
+        text = ""
+        article = html.find("article", attrs={"itemprop": "articleBody"})
+        text = article.text
+        text = re.sub(r"\【.*\】", "", text)
+        text = self._remove_unnecessary_white_space(text)
         return text
+
 
 class YTNScraper(Scraper):
     @property
@@ -682,24 +736,22 @@ class YTNScraper(Scraper):
 
     def _get_article_image_urls(self, html: BeautifulSoup) -> list[str] | None:
         image_urls = []
-        article = html.find('div', attrs={'itemprop': 'articleBody'})
-        photos: list[bs4.element.Tag] = article.find_all('img')
+        article = html.find("div", attrs={"itemprop": "articleBody"})
+        photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
-            image_url = photo.get('src')
+            image_url = photo.get("src")
             if image_url:
                 image_urls.append(image_url)
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
-        text = ''
-        article = html.find('div', attrs={'class': 'article'})
+        text = ""
+        article = html.find("div", attrs={"class": "article"})
         text = article.text
-        text = re.sub(r"※ '당신의 제보가 뉴스가 됩니다'", '', text)
-        text = re.sub(r'\[카카오톡\] YTN 검색해 채널 추가', '', text)
-        text = re.sub(r'\[전화\] 02-398-8585', '', text)
-        text = re.sub(r'\[메일\]', '', text)
-        text = re.sub(r'\[저작권자.*\]', '', text)
-        text = ' '.join(text.split())
+        text = re.sub(r"※ '당신의 제보가 뉴스가 됩니다'", "", text)
+        text = re.sub(r"\[카카오톡\] YTN 검색해 채널 추가", "", text)
+        text = re.sub(r"\[전화\] 02-398-8585", "", text)
+        text = re.sub(r"\[메일\]", "", text)
+        text = re.sub(r"\[저작권자.*\]", "", text)
+        text = self._remove_unnecessary_white_space(text)
         return text
-
-

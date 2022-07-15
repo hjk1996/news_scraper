@@ -1,12 +1,17 @@
 import abc
+import re
 from sqlite3 import Cursor
+
 from webbrowser import Chrome
 import requests
 import time
 import os
 import pandas as pd
 import pickle
+
+
 from selenium import webdriver
+
 
 from bs4 import BeautifulSoup
 
@@ -139,6 +144,19 @@ class Scraper:
 
         except Exception as e:
             raise SaveError("Failed to save the data")
+
+    @staticmethod
+    def _remove_unnecessary_white_space(text: str) -> str:
+        return " ".join(text.split())
+
+    @staticmethod
+    def _remove_not_korean(text: str)-> str:
+        korean = re.compile(r'[^ ㄱ-ㅣ가-힣+]')
+        return korean.sub(' ', text)
+
+    @staticmethod
+    def _remove_reporter_name(text: str) -> str:
+        return re.sub(r'[ㄱ-ㅣ가-힣]+ 기자', '', text)
 
     def _scrape_one_page(self, article_info: ArticleInfo) -> None:
         try:

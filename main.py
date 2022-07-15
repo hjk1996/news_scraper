@@ -26,13 +26,16 @@ if __name__ == "__main__":
     con = sqlite3.connect("./news.db")
     cursor = con.cursor()
 
+    driver = None
+
     # driver = make_chrome_driver()
-    url = "https://www.ytn.co.kr/_ln/0102_202207140859577832"
-    scraper = YTNScraper(cursor)
+    url = "http://www.munhwa.com/news/view.html?no=2022060301031930319001"
+    scraper = MunhwaScraper(cursor)
     # scraper.scrape()
 
     test_get_article_image_urls_method(scraper, url)
     test_get_article_text_method(scraper, url)
 
-    # driver.close()
-    # driver.quit()
+    if driver:
+        driver.close()
+        driver.quit()

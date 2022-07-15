@@ -570,6 +570,8 @@ class FinancialNewsScraper(Scraper):
             art_copyright.decompose()
 
         text = article.text
+        text = re.sub(r'【파이낸셜.*】', '', text)
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

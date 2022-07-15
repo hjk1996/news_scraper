@@ -479,7 +479,7 @@ class AsiaKyungjeScraper(Scraper):
         return text
 
 
-class AjukyungjeScraper(Scraper):
+class AjuKyungjeScraper(Scraper):
     @property
     def press(self) -> str:
         return "아주경제"
@@ -508,13 +508,27 @@ class AjukyungjeScraper(Scraper):
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"itemprop": "articleBody"})
+        
+        article_bot = article.find('div', attrs={'class': 'article_bot'})
+        if article_bot:
+            article_bot.decompose()
+        
+        like_wrap = article.find('div', attrs={'class': 'like_wrap'})
+        if like_wrap:
+            like_wrap.decompose()
 
-        text_area = article.find("div", attrs={"style": "text-align: justify;"})
-        text = text_area.text
+        byline = article.find('div', attrs={'class': 'byline'})
+        if byline:
+            byline.decompose()
+        
+        copy = article.find('p', attrs={'class': 'copy'})
+        if copy:
+            copy.decompose()
 
-        if re.match(r"\[사진=.*\]", text):
-            text = re.sub(r"\[사진=.*\]", "", text).strip()
+        text = article.text
 
+        text = re.sub(r"\[사진=.*\]", "", text).strip()
+        text = self._remove_not_korean(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

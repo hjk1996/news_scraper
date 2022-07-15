@@ -601,6 +601,8 @@ class HankyungScraper(Scraper):
     def _get_article_text(self, html: BeautifulSoup) -> str:
         article = html.find("div", attrs={"id": "articletxt"})
         text = article.text
+        text = self._remove_not_korean(text)
+        text = self._remove_reporter_name(text)
         text = self._remove_unnecessary_white_space(text)
         return text
 

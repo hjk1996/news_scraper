@@ -19,6 +19,10 @@ class ChosunScraper(Scraper):
             raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
 
     @property
+    def need_driver() -> bool:
+        return True
+
+    @property
     def press(self) -> str:
         return "조선일보"
 
@@ -157,6 +161,10 @@ class KyunghyangScraper(Scraper):
 
         if driver == None:
             raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
+
+    @property
+    def need_driver() -> bool:
+        return True
 
     @property
     def press(self) -> str:
@@ -578,7 +586,6 @@ class FinancialNewsScraper(Scraper):
         return text
 
 
-# 드라이버 필요함
 class HankyungScraper(Scraper):
     def __init__(
         self, db_curosr: Cursor, delay: int = None, driver: webdriver.Chrome = None
@@ -587,6 +594,10 @@ class HankyungScraper(Scraper):
 
         if driver == None:
             raise NoDriverError(f"{self.__class__.__name__} needs a webdriver.")
+
+    @property
+    def need_driver() -> bool:
+        return True
 
     @property
     def press(self) -> str:
@@ -686,8 +697,6 @@ class MBCScraper(Scraper):
         if captions:
             for caption in captions:
                 caption.decompose()
-
-   
 
         text = article.text
         text = text.replace("앵커", "")

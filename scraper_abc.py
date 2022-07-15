@@ -49,6 +49,10 @@ class Scraper:
         self._load_data_from_db()
 
     @property
+    def need_driver() -> bool:
+        return False
+
+    @property
     @abc.abstractmethod
     def press(self) -> str:
         pass
@@ -184,9 +188,5 @@ class Scraper:
     def scrape(self):
         for url in self._article_infos:
             self._scrape_one_page(url)
-
-        if self._driver != None:
-            self._driver.close()
-            self._driver.quit()
 
         self._save_data()

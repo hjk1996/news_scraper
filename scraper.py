@@ -1,3 +1,4 @@
+from email.mime import image
 import re
 
 from scraper_abc import Scraper
@@ -399,10 +400,13 @@ class MoneyTodayScraper(Scraper):
             if image_url.startswith("//"):
                 image_url = "https:" + image_url
 
-            if image_url.endswith("/dims/optimize"):
-                image_url = image_url.replace("/dims/optimize", "")
+            image_url = image_url.replace("/dims/optimize/", "")
+
+            if 'thumb' not in image_url:
+                continue
 
             image_urls.append(image_url)
+        
 
         return image_urls
 
@@ -463,6 +467,9 @@ class AsiaKyungjeScraper(Scraper):
         article = html.find("div", attrs={"itemprop": "articleBody"})
         photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
+            image_url = photo["src"]
+            if 'plugin' in image_url:
+                continue
             image_urls.append(photo["src"])
         return image_urls
 
@@ -556,11 +563,17 @@ class FinancialNewsScraper(Scraper):
         if hot_news:
             hot_news.decompose()
 
+        news_stand_area = article.find('div', attrs={'id': 'newsStandArea'})
+        if news_stand_area:
+            news_stand_area.decompose()
+
         photos = article.find_all("img")
 
         for photo in photos:
+            image_url: str = photo['src']
+            if image_url.startswith('/resources'):
+                continue
             image_urls.append(photo["src"])
-
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
@@ -727,6 +740,7 @@ class SBSScraper(Scraper):
             if image_url.startswith("//"):
                 image_url = "https:" + image_url
             image_urls.append(image_url)
+        print(image_urls)
         return image_urls
 
     def _get_article_text(self, html: BeautifulSoup) -> str:
@@ -772,7 +786,7 @@ class YTNScraper(Scraper):
         photos: list[bs4.element.Tag] = article.find_all("img")
         for photo in photos:
             image_url = photo.get("src")
-            if image_url:
+            if image_url and 'thumb_default' not in image_url:
                 image_urls.append(image_url)
         return image_urls
 

@@ -40,11 +40,12 @@ class Scraper:
         )
         self._saving_list = []
 
-        if not os.path.exists("./images"):
-            os.mkdir("./images")
+        self._image_folder_dir = f"./images/{self.press}"
 
-        if not os.path.exists("./data"):
-            os.mkdir("./data")
+        os.makedirs(self._image_folder_dir, exist_ok=True)
+        os.makedirs('./data', exist_ok=True)
+
+
 
         self._load_data_from_db()
 
@@ -126,14 +127,13 @@ class Scraper:
     def _save_images(self, id: str, image_urls: list[str]) -> list[str] | None:
         image_paths = []
 
-        image_folder_directory = f"./images/{id}"
-        os.mkdir(image_folder_directory)
+        image_folder_directory = self._image_folder_dir + f'/{id}'
+        os.makedirs(image_folder_directory, exist_ok=True)
         for order, url in enumerate(image_urls):
             image_name = f"{order}.{url.split('.')[-1]}"
             image_path = os.path.join(image_folder_directory, image_name)
             image_request = self._make_image_request(id, url)
             image_paths.append(image_path)
-
             self._save_image(image_path, image_request.content)
 
         if image_paths:

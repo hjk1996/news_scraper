@@ -1,5 +1,5 @@
-from scraper import *
 from scraper_abc import Scraper
+from scraper_manager import ScraperManager
 import sqlite3
 from glob import glob
 from util import make_chrome_driver
@@ -23,19 +23,6 @@ def test_get_article_text_method(scraper: Scraper, url: str) -> None:
 
 if __name__ == "__main__":
 
-    con = sqlite3.connect("./news.db")
-    cursor = con.cursor()
-
-    driver = None
-
-    # driver = make_chrome_driver()
-    url = "https://www.ytn.co.kr/_ln/0101_202205312147243645"
-    scraper = YTNScraper(cursor)
-    # scraper.scrape()
-
-    test_get_article_image_urls_method(scraper, url)
-    test_get_article_text_method(scraper, url)
-
-    if driver:
-        driver.close()
-        driver.quit()
+    manager = ScraperManager()
+    manager.scrape_all()
+ 

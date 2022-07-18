@@ -144,7 +144,7 @@ class Scraper:
 
         try:
             with open(f"./data/{self.press}.pickle", "wb") as file:
-                pickle.dump(self._saving_list, file)
+                pickle.dump(self._saving_list, file, pickle.HIGHEST_PROTOCOL)
 
         except Exception as e:
             raise SaveError("Failed to save the data")

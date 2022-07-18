@@ -3,7 +3,7 @@ from scraper_manager import ScraperManager
 import sqlite3
 from glob import glob
 from util import make_chrome_driver
-
+import pickle
 
 def test_get_article_image_urls_method(scraper: Scraper, url: str) -> None:
     html = scraper._get_html_method(url)

@@ -538,6 +538,10 @@ class AjuKyungjeScraper(Scraper):
         if byline:
             byline.decompose()
 
+        hide = article.find("span", attrs={"class": "hide"})
+        if hide:
+            hide.decompose()
+
         copy = article.find("p", attrs={"class": "copy"})
         if copy:
             copy.decompose()

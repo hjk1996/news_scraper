@@ -27,7 +27,7 @@ class ArticleInfo:
     content: str | None = field(repr=False)
     # search_keyword: str = field(repr=False)
     image_dirs: list[str] | None = field(repr=False)
-    # hash_id: str = field(repr=False)
+    hash_id: str = field(repr=False)
 
     date: datetime = field(repr=True, init=False)
     category1: list[str] | None = field(repr=False, init=False)
